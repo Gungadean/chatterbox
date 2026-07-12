@@ -8,6 +8,8 @@ if torch.cuda.is_available():
     device = "cuda"
 elif torch.backends.mps.is_available():
     device = "mps"
+elif torch.xpu.is_available():
+    device = "xpu"
 else:
     device = "cpu"
 

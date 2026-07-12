@@ -4,7 +4,15 @@ import torch
 import gradio as gr
 from chatterbox.tts_turbo import ChatterboxTurboTTS
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# Automatically detect the best available device
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_available():
+    device = "mps"
+elif torch.xpu.is_available():
+    device = "xpu"
+else:
+    device = "cpu"
 
 EVENT_TAGS = [
     "[clear throat]", "[sigh]", "[shush]", "[cough]", "[groan]",
@@ -75,8 +83,8 @@ def set_seed(seed: int):
 
 
 def load_model():
-    print(f"Loading Chatterbox-Turbo on {DEVICE}...")
-    model = ChatterboxTurboTTS.from_pretrained(DEVICE)
+    print(f"Loading Chatterbox-Turbo on {device}...")
+    model = ChatterboxTurboTTS.from_pretrained(device)
     return model
 
 
@@ -93,7 +101,7 @@ def generate(
         norm_loudness
 ):
     if model is None:
-        model = ChatterboxTurboTTS.from_pretrained(DEVICE)
+        model = ChatterboxTurboTTS.from_pretrained(device)
 
     if seed_num != 0:
         set_seed(int(seed_num))

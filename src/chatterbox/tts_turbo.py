@@ -134,7 +134,7 @@ class ChatterboxTurboTTS:
         ckpt_dir = Path(ckpt_dir)
 
         # Always load to CPU first for non-CUDA devices to handle CUDA-saved models
-        if device in ["cpu", "mps"]:
+        if device != "cuda":
             map_location = torch.device('cpu')
         else:
             map_location = None
@@ -190,6 +190,12 @@ class ChatterboxTurboTTS:
                 print("MPS not available because the current PyTorch install was not built with MPS enabled.")
             else:
                 print("MPS not available because the current MacOS version is not 12.3+ and/or you do not have an MPS-enabled device on this machine.")
+            device = "cpu"
+
+        # Check if XPU is available
+        if device == "xpu" and not torch.xpu.is_available():
+            if not torch.backends.xpu.is_built():
+                print("XPU not available because the current PyTorch install was not built with XPU enabled.")
             device = "cpu"
 
         local_path = snapshot_download(

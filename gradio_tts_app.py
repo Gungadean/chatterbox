@@ -5,7 +5,15 @@ import gradio as gr
 from chatterbox.tts import ChatterboxTTS
 
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# Automatically detect the best available device
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_available():
+    device = "mps"
+elif torch.xpu.is_available():
+    device = "xpu"
+else:
+    device = "cpu"
 
 
 def set_seed(seed: int):
@@ -17,13 +25,13 @@ def set_seed(seed: int):
 
 
 def load_model():
-    model = ChatterboxTTS.from_pretrained(DEVICE)
+    model = ChatterboxTTS.from_pretrained(device)
     return model
 
 
 def generate(model, text, audio_prompt_path, exaggeration, temperature, seed_num, cfgw, min_p, top_p, repetition_penalty):
     if model is None:
-        model = ChatterboxTTS.from_pretrained(DEVICE)
+        model = ChatterboxTTS.from_pretrained(device)
 
     if seed_num != 0:
         set_seed(int(seed_num))

@@ -5,9 +5,19 @@ import torch
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS, SUPPORTED_LANGUAGES
 import gradio as gr
 
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+# Automatically detect the best available device
+if torch.cuda.is_available():
+    device = "cuda"
+elif torch.backends.mps.is_available():
+    device = "mps"
+elif torch.xpu.is_available():
+    device = "xpu"
+else:
+    device = "cpu"
+
+
 T3_MODEL = os.getenv("CHATTERBOX_MULTILINGUAL_T3_MODEL", "v2")
-print(f"🚀 Running on device: {DEVICE}")
+print(f"🚀 Running on device: {device}")
 print(f"Using multilingual T3 model: {T3_MODEL}")
 
 # --- Global Model Initialization ---
@@ -143,9 +153,9 @@ def get_or_load_model():
     if MODEL is None:
         print("Model not loaded, initializing...")
         try:
-            MODEL = ChatterboxMultilingualTTS.from_pretrained(DEVICE, t3_model=T3_MODEL)
-            if hasattr(MODEL, 'to') and str(MODEL.device) != DEVICE:
-                MODEL.to(DEVICE)
+            MODEL = ChatterboxMultilingualTTS.from_pretrained(device, t3_model=T3_MODEL)
+            if hasattr(MODEL, 'to') and str(MODEL.device) != device:
+                MODEL.to(device)
             print(f"Model loaded successfully. Internal device: {getattr(MODEL, 'device', 'N/A')}")
         except Exception as e:
             print(f"Error loading model: {e}")
@@ -161,9 +171,12 @@ except Exception as e:
 def set_seed(seed: int):
     """Sets the random seed for reproducibility across torch, numpy, and random."""
     torch.manual_seed(seed)
-    if DEVICE == "cuda":
+    if device == "cuda":
         torch.cuda.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
+    elif device == "xpu":
+        torch.xpu.manual_seed(seed)
+        torch.xpu.manual_seed_all(seed)
     random.seed(seed)
     np.random.seed(seed)
     

@@ -69,8 +69,10 @@ import torchaudio as ta
 import torch
 from chatterbox.tts_turbo import ChatterboxTurboTTS
 
+device = "cuda"  # or "cpu" / "mps" / "xpu"
+
 # Load the Turbo model
-model = ChatterboxTurboTTS.from_pretrained(device="cuda")
+model = ChatterboxTurboTTS.from_pretrained(device=device)
 
 # Generate with Paralinguistic Tags
 text = "Hi there, Sarah here from MochaFone calling you back [chuckle], have you got one minute to chat about the billing issue?"
@@ -89,7 +91,7 @@ import torchaudio as ta
 from chatterbox.tts import ChatterboxTTS
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
-device = "cuda"  # or "cpu" / "mps"
+device = "cuda"  # or "cpu" / "mps" / "xpu"
 
 # English example
 model = ChatterboxTTS.from_pretrained(device=device)
