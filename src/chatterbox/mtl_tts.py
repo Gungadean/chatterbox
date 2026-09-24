@@ -240,8 +240,7 @@ class ChatterboxMultilingualTTS:
 
         # Check if XPU is available
         if device == "xpu" and not torch.xpu.is_available():
-            if not torch.backends.xpu.is_built():
-                print("XPU not available because the current PyTorch install was not built with XPU enabled.")
+            print("XPU is not available. Falling back to CPU.")
             device = "cpu"
 
         t3_model = _resolve_multilingual_t3_model(t3_model)
