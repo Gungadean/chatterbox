@@ -160,12 +160,18 @@ class S3Tokenizer(S3TokenizerV2):
         )
         magnitudes = stft[..., :-1].abs()**2
 
-        # Intel XPU Fix: OneDNN requires tightly packed memory layouts for matmul primitives.
-        # Complex tensor operations (.abs()**2) and slicing (:-1) severely fragment memory strides.
-        magnitudes = magnitudes.contiguous()
+        mel_filters = self.mel_filters.to(
+            device=self.device,
+            dtype=magnitudes.dtype,
+        )
 
-        # Explicitly ensure both tensors are contiguous and match datatypes
-        mel_filters = self._mel_filters.to(device=self.device, dtype=magnitudes.dtype).contiguous()
+        # Intel XPU fix:
+        # The STFT output and subsequent slicing preserve a non-contiguous
+        # strided layout that can cause oneDNN matmul to fail on XPU.
+        # Materialize dense operands before the mel-filter matmul.
+        if magnitudes.device.type == "xpu":
+            magnitudes = magnitudes.contiguous()
+            mel_filters = mel_filters.contiguous()
 
         mel_spec = mel_filters @ magnitudes
 
